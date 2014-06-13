@@ -1,7 +1,6 @@
 #ifndef _COM_WORDGAME_UTILITY_TRIE_H_KYLE
 #define _COM_WORDGAME_UTILITY_TRIE_H_KYLE
 #include <string>
-#include <memory>
 using std::string;
 namespace com{	namespace wordgame{ namespace utility{ namespace trie{
 
@@ -36,7 +35,7 @@ class Trie{
 		TrieNode * root = nullptr;
 		TrieNode * get(TrieNode * x,string & key,int d)const;
 		TrieNode * put(TrieNode  * x, string & s, value val,int d);
-		void compress(TrieNode * parent, TrieNode * x);
+		TrieNode * compress(TrieNode * x);
 	public:
 		//Due to Language it is required that the default/Null value is set i.e int(0) or bool(false)
 		Trie(value defaultValue):defVal(defaultValue){}

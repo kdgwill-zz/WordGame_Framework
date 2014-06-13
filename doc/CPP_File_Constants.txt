@@ -1,0 +1,14 @@
+------------------------------------------------------
+Constant 		Meaning
+------------------------------------------------------
+ios_base::in 		Open file for reading.
+------------------------------------------------------
+ios_base::out 		Open file for writing.
+------------------------------------------------------
+ios_base::ate 		Seek to end-of-file upon opening file.
+------------------------------------------------------
+ios_base::app 		Append to end-of-file.
+------------------------------------------------------
+ios_base::trunc 	Truncate file if it exists.
+------------------------------------------------------
+ios_base::binary 	Binary file.

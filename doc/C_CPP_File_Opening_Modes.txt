@@ -1,0 +1,28 @@
+------------------------------------------------------------------------------------------------------------------------
+C++ mode		C mode 		Meaning
+------------------------------------------------------------------------------------------------------------------------
+ios_base::in 		 "r" 		Open for reading.
+------------------------------------------------------------------------------------------------------------------------
+ios_base::out 		 "w" 		(Same as ios_base::out | ios_base::trunc .)
+------------------------------------------------------------------------------------------------------------------------
+ios_base::out   |  	 "w" 		Open for writing, truncating file if it already exists.
+ios_base::trunc
+------------------------------------------------------------------------------------------------------------------------
+ios_base::out   | 	 "a" 		Open for writing, append only.
+ios_base::app
+------------------------------------------------------------------------------------------------------------------------
+ios_base::in    |	 "r+" 		Open for reading and writing, with writing permitted anywhere in the file.
+ios_base::out
+------------------------------------------------------------------------------------------------------------------------
+ios_base::in    | 	 "w+" 		Open for reading and writing, first truncating file if it already exists.
+ios_base::out   | 
+ios_base::trunc
+------------------------------------------------------------------------------------------------------------------------
+c++mode |		"cmodeb" 	Open in c++mode or corresponding cmode and in binary mode; 
+ios_base::binary			for example, ios_base::in | ios_base::binary becomes "rb"
+------------------------------------------------------------------------------------------------------------------------
+c++mode | 		"cmode" 	Open in indicated mode and go to end of file.
+ios_base::ate				C uses a separate function call instead of a mode code. 
+					For example, ios_base::in | ios_base::ate trans-lates to the "r" mode 
+					and the C function call fseek(file, 0, SEEK_END) . 
+------------------------------------------------------------------------------------------------------------------------
