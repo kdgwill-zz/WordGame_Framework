@@ -4,7 +4,7 @@
 #include <termios.h>
 
 using namespace std;
-using namespace com::wordgame::utility::trie;
+using com::wordgame::utility::trie::Trie;
 
 char getche(void);
 
@@ -13,17 +13,19 @@ int main(int argc , char * argv[]){
 		cout <<"Usage: "<<argv[0]<<" File_Of_Words"<<endl;
 	}
 
-	Trie trie;
+	Trie<int> trie(0);
 	string str;
 	//LOAD Trie Table
 	std::ifstream file(argv[1]);
 	while(!file.eof())
 	{
 		file >> str;
-		trie.add(str);
+		trie.put(str,1);
 	}
 	file.close();
-
+	cout << "Total Number of Nodes Before Compression: " << trie.size() << endl;
+	cout << "Total Nodes Removed: " << trie.compress() << endl;
+	cout << "Total Number of Nodes After Compression: " << trie.size() << endl;
 	//Interactive User 
 	do{
 		cout << "\n\nPlease Enter A Word : (Q)uit" << endl;
@@ -37,14 +39,20 @@ int main(int argc , char * argv[]){
 				cout << "\n[Quitting...]" << endl;
 				goto QUIT;
 			}
-			if(!str.empty() && trie.get(str)){
+			if(!str.empty() && trie.contains(str)){
 				cout << "] is contained within the Trie-Table" << endl;
 				cout << '[' << str;
+			}else{
+				string lp = trie.longestPrefix(str);
+				if(!lp.empty()){
+					cout << "] current closest match is " << lp << endl;					
+					cout << '[' << str;
+				}
 			}	
 
 		}
 		str.pop_back();//remove newline character
-		if(!trie.get(str)) ::printf("\n\n[%s] is not contained within the Trie-Table\n\n",str.c_str());	
+		if(!trie.contains(str)) ::printf("\n\n[%s] is not contained within the Trie-Table\n\n",str.c_str());	
 
 		//This Helps Flush input stream before next use
 		cin.clear();
