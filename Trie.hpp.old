@@ -30,11 +30,11 @@ class Trie{
 	public:
 		//default value when initialize TrieNode example int(0) or bool(false)
 		struct TrieNode{
-			std::string key;
+			std::wstring key;
 			value val;
 			TrieNode *mid, *left, *right;
 			TrieNode(
-					std::string Key,
+					std::wstring Key,
 					value Value,
 					TrieNode * midNode  = nullptr,
 					TrieNode * leftNode = nullptr,
@@ -48,11 +48,12 @@ class Trie{
 		};
 	private:
 		TrieNode * root = nullptr;
-		TrieNode * get(TrieNode * x,const std::string & key,size_t d,const bool & ignoreCase=false)const;
-		TrieNode * put(TrieNode * x,const std::string & key,const value & val,size_t d);
-		void collect(TrieNode * x, std::string prefix, std::vector<std::string> & vec)const;
+		TrieNode * get(TrieNode * x,const std::wstring & key,size_t d,const bool & ignoreCase=false)const;
+		TrieNode * put(TrieNode * x,const std::wstring & key,const value & val,size_t d);
+		void collect(TrieNode * x, std::wstring prefix, std::vector<std::string> & vec)const;
+		void collect(TrieNode * x, std::wstring prefix, std::vector<std::wstring> & vec)const;
 		//This is specifically for PrefixMatch and should not be used outside of method
-		TrieNode * getPrefixNode(TrieNode * x,std::string key,std::string prefix,size_t d,const bool & ignoreCase=false)const;
+		TrieNode * getPrefixNode(TrieNode * x,std::wstring key,std::wstring prefix,size_t d,const bool & ignoreCase=false)const;
 		TrieNode * compress(TrieNode * x);
 	public:
 		//Due to Language it is required that the default/Null value is set i.e int(0) or bool(false)
@@ -65,16 +66,22 @@ class Trie{
 		value getDefaultValue()const;
 		//Check if returned value is not equal to default value
 		bool contains(std::string key,const bool & ignoreCase=false)const;
+		bool contains(std::wstring key,const bool & ignoreCase=false)const;
 		//Return Value
 		value get(std::string key, const bool & ignoreCase = false)const;
+		value get(std::wstring key, const bool & ignoreCase = false)const;
 		//Insert String into symbol Table
 		void put(std::string key,const value & val);
+		void put(std::wstring key,const value & val);
 		//Find and return longest prefix of s in TST
-		std::string longestPrefix(std::string prefix,const bool & ignoreCase = false) const;
+		std::string longestPrefix(std::string s,const bool & ignoreCase = false) const;
+		std::wstring longestPrefix(std::wstring s,const bool & ignoreCase = false) const;
 		//return all words contained in the tree
 		std::vector<std::string> keys();
+		std::vector<std::wstring> keys_W();
 		//return all keys starting with a given prefix
 		std::vector<std::string> prefixMatch(std::string prefix,const bool & ignoreCase = false);
+		std::vector<std::wstring> prefixMatch(std::wstring prefix,const bool & ignoreCase = false);
 		//compress the table making it immutable returning the number of nodes removed
 		size_t compress();
 };
@@ -95,8 +102,8 @@ class Trie{
 
 #include <stdexcept>
 
-//static 
-void __toLowerCase(std::string & s){
+static 
+void __toLowerCase(std::wstring & s){
 	for(size_t i = 0; i<s.length()-1; i++){
 		s[i] = ::tolower(s[i]);
 	}
@@ -104,8 +111,8 @@ void __toLowerCase(std::string & s){
 
 //Longest Common Prefix
 //use d as offset to s1 then begin compare s2
-//static 
-size_t __lcp(size_t d,const std::string & s1,const std::string & s2){
+static 
+size_t __lcp(size_t d,const std::wstring & s1,const std::wstring & s2){
 	size_t c = 0;
 	//Must Determine position of last matching character and match the letters 
 	//after it meaning decrease total length of search by 1
@@ -114,6 +121,33 @@ size_t __lcp(size_t d,const std::string & s1,const std::string & s2){
 		c++; 
 	}
 	return c;
+}
+#include <iostream>
+using namespace std;
+static 
+std::string __wideToString(const std::wstring & ws){
+	if(ws.empty()){throw std::invalid_argument("Wide string must have length >= 1");}
+	std::setlocale(LC_ALL, "");
+	size_t length = sizeof(wchar_t)*ws.length();
+	std::string str(length,' ');
+	if((length=wcstombs(&str[0], ws.c_str(), length))==size_t(-1)){//return -1 on invalid conversion
+		throw std::length_error("Conversion Error Invalid Wide Character");	
+	}
+	str.resize(length); // Shrink to fit.
+	return str;
+}
+
+static 
+std::wstring __stringToWide(const std::string & str){
+	if(str.empty()){throw std::invalid_argument("String must have length >= 1");}
+	std::setlocale(LC_ALL, "");
+	size_t length = str.length();
+	std::wstring ws(length, L' '); // Overestimate number of code points.
+	if((length=mbstowcs(&ws[0], str.c_str(), length))==size_t(-1)){//return -1 on invalid conversion
+		throw std::length_error("Conversion Error Invalid Multibyte Character");	
+	} 
+	ws.resize(length); // Shrink to fit.
+	return ws;
 }
 
 template<typename value>
@@ -129,10 +163,17 @@ template<typename value>
 value Trie<value>::getDefaultValue()const{return defVal;}
 
 template<typename value>
+bool Trie<value>::contains(std::wstring key,const bool & ignoreCase)const{return get(key,ignoreCase)!=defVal;}
+
+template<typename value>
 bool Trie<value>::contains(std::string key,const bool & ignoreCase)const{return get(key,ignoreCase)!=defVal;}
 
 template<typename value>
-value Trie<value>::get(std::string key,const bool & ignoreCase) const {
+value Trie<value>::get(std::string key,const bool & ignoreCase) const {	return get(__stringToWide(key),ignoreCase);}
+
+
+template<typename value>
+value Trie<value>::get(std::wstring key,const bool & ignoreCase) const {
 	if(key.empty()){throw std::invalid_argument("key must have length >= 1");}
 	if(ignoreCase)__toLowerCase(key);
 	TrieNode* x = get(root,key,0,ignoreCase);
@@ -140,11 +181,11 @@ value Trie<value>::get(std::string key,const bool & ignoreCase) const {
 }
 
 template<typename value>
-typename Trie<value>::TrieNode * Trie<value>::get(TrieNode * x,const std::string & key,size_t d,const bool & ignoreCase)const{
+typename Trie<value>::TrieNode * Trie<value>::get(TrieNode * x,const std::wstring & key,size_t d,const bool & ignoreCase)const{
 	if(key.empty()){throw std::invalid_argument("key must have length >= 1");}
 	if(x == nullptr) {return nullptr;}
 
-	std::string xkey(x->key);
+	std::wstring xkey(x->key);
 	if(ignoreCase)__toLowerCase(xkey);
 
 	size_t offset = __lcp(d,key,xkey);
@@ -156,18 +197,21 @@ typename Trie<value>::TrieNode * Trie<value>::get(TrieNode * x,const std::string
 	else 					return x;
 }
 
+template<typename value>
+void Trie<value>::put(std::string key,const value & val){put(__stringToWide(key),val);}
+
 //ALWAYS PLACE ORIGINAL VALUE IN TABLE NO IGNORE CASE 
 template<typename value>
-void Trie<value>::put(std::string key,const value & val){	
+void Trie<value>::put(std::wstring key,const value & val){	
 	if(val==defVal)throw std::invalid_argument("value is equivalent to default value; Adding is irrelevant");
 	if(!contains(key))wordCount++;//increase size
 	root = put(root,key,val,0);
 }
 
 template<typename value>
-typename Trie<value>::TrieNode * Trie<value>::put(TrieNode  * x, const std::string & key, const value & val, size_t d){
+typename Trie<value>::TrieNode * Trie<value>::put(TrieNode  * x, const std::wstring & key, const value & val, size_t d){
 	if(x==nullptr){
-		x = new TrieNode(std::string(1,key[d]),defVal);
+		x = new TrieNode(std::wstring(1,key[d]),defVal);
 		nodeCount++;
 	}
 	size_t offset = __lcp(d,key,x->key);
@@ -176,8 +220,8 @@ typename Trie<value>::TrieNode * Trie<value>::put(TrieNode  * x, const std::stri
 	else if	(key[d] > x->key[offset])	x->right = put(x->right, key, val, d);   //if key val greater than curr node
 	else if	(d < key.length()-1)		x->mid   = put(x->mid,   key, val, d+1); //need to be -2 because of  \0
 	else if (offset<x->key.length()-1){// special case for strings>1, prevent false positive
-		std::string key1 = x->key.substr(0,offset);//get first half
-		std::string key2 = x->key.substr(offset);//get second half
+		std::wstring key1 = x->key.substr(0,offset);//get first half
+		std::wstring key2 = x->key.substr(offset);//get second half
 		x->key.assign(key2);
 		//Their may be a huge problem with where to place left & right nodes; however no issue presented in preliminary testing
 		return new TrieNode(key1,val,x);
@@ -185,9 +229,15 @@ typename Trie<value>::TrieNode * Trie<value>::put(TrieNode  * x, const std::stri
 	else 					x->val   = val;
 	return x;
 }
-
 template<typename value>
 std::string Trie<value>::longestPrefix(std::string key,const bool & ignoreCase) const{
+	std::wstring wkey = __stringToWide(key);
+	std::wstring ws = longestPrefix(wkey,ignoreCase);
+	return __wideToString(ws);
+}	
+
+template<typename value>
+std::wstring Trie<value>::longestPrefix(std::wstring key,const bool & ignoreCase) const{
 	if(key.empty()) return key; //why not just return same key its empty anyway
 	if(ignoreCase)__toLowerCase(key);	
 	TrieNode * x = root;
@@ -195,7 +245,7 @@ std::string Trie<value>::longestPrefix(std::string key,const bool & ignoreCase) 
 	size_t offset = 0;
 	size_t len = 0;
 	while(x!=nullptr && i < key.length()-1){
-		std::string xkey(x->key);
+		std::wstring xkey(x->key);
 		if(ignoreCase)__toLowerCase(xkey);
 
 		offset = __lcp(i,key,xkey);
@@ -214,7 +264,7 @@ std::string Trie<value>::longestPrefix(std::string key,const bool & ignoreCase) 
 }
 
 template<typename value>
-void Trie<value>::collect(TrieNode * x, std::string prefix, std::vector<std::string> & vec)const{
+void Trie<value>::collect(TrieNode * x, std::wstring prefix, std::vector<std::wstring> & vec)const{
 	if(x==nullptr) return;
 	collect(x->left,  prefix, vec);
 	if (x->val != defVal)vec.emplace_back(prefix + x->key);
@@ -223,16 +273,16 @@ void Trie<value>::collect(TrieNode * x, std::string prefix, std::vector<std::str
 }
 
 template<typename value>
-std::vector<std::string> Trie<value>::keys(){
-	std::vector<std::string> vec;
+std::vector<std::wstring> Trie<value>::keys_W(){
+	std::vector<std::wstring> vec;
 	collect(root, u8"", vec);
 	return vec;	
 }
 
 template<typename value>
-std::vector<std::string> Trie<value>::prefixMatch(std::string prefix,const bool & ignoreCase){
+std::vector<std::wstring> Trie<value>::prefixMatch(std::wstring prefix,const bool & ignoreCase){
 	if(ignoreCase)__toLowerCase(prefix);
-	std::vector<std::string> vec;
+	std::vector<std::wstring> vec;
 	TrieNode * x = getPrefixNode(root, prefix, u8"",0,ignoreCase);
 	if (x == nullptr)return vec;
 	if (x->val != defVal) vec.emplace_back(x->key);
@@ -242,12 +292,12 @@ std::vector<std::string> Trie<value>::prefixMatch(std::string prefix,const bool 
 }
 
 template<typename value>
-typename Trie<value>::TrieNode * Trie<value>::getPrefixNode(TrieNode * x,std::string key,std::string prefix,
+typename Trie<value>::TrieNode * Trie<value>::getPrefixNode(TrieNode * x,std::wstring key,std::wstring prefix,
 		size_t d,const bool & ignoreCase)const{
 	if(key.empty()){throw std::invalid_argument("key must have length >= 1");}
 	if(x == nullptr) {return nullptr;}
 
-	std::string xkey = x->key;
+	std::wstring xkey = x->key;
 	if(ignoreCase)__toLowerCase(xkey);
 
 	size_t offset = __lcp(d,key,xkey);
@@ -258,6 +308,28 @@ typename Trie<value>::TrieNode * Trie<value>::getPrefixNode(TrieNode * x,std::st
 	prefix+=xkey;
 	if	(d<key.length()-1)	return getPrefixNode(x->mid,  key, prefix, d+1,ignoreCase);// need to be -2 because of \0 of stringi
 	else				return new TrieNode(prefix,x->val,x->mid,x->left,x->right);
+}
+
+//////////////slower but reduced and cleaner code
+template<typename value>
+std::vector<std::string> Trie<value>::keys(){
+	std::vector<std::string> vec;
+	std::vector<std::wstring> wvec = keys_W();
+	for(auto str : wvec){
+		vec.emplace_back(__wideToString(str));	
+	}
+	return vec;	
+}
+
+//////////////slower but reduced and cleaner code
+template<typename value>
+std::vector<std::string> Trie<value>::prefixMatch(std::string prefix,const bool & ignoreCase){
+	std::vector<std::string> vec;
+	std::vector<std::wstring> wvec = prefixMatch(__stringToWide(prefix),ignoreCase);
+	for(auto str : wvec){
+		vec.emplace_back(__wideToString(str));	
+	}
+	return vec;	
 }
 
 template<typename value>

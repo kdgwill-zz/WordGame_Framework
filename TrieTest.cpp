@@ -1,94 +1,145 @@
 #include <iostream>
+#include <locale>
 #include <fstream>
+#include <sstream>
 #include <iomanip>//setw
 #include "Trie.hpp"
 #include <termios.h>
 #include <vector>
+#include <queue>
+#include <algorithm>
 using namespace std;
-using com::wordgame::utility::trie::Trie;
 
+char getch(void);
 char getche(void);
 
 int main(int argc , char * argv[]){
 	if(argc != 2){
 		cout <<"Usage: "<<argv[0]<<" File_Of_Words"<<endl;
+		exit(EXIT_FAILURE);
 	}
 
-	Trie<int> trie(0);
-	vector<string> vec;
 	string str;
+	Trie<string> trie("");
+	vector<string> vec, vec_2;
 	//LOAD Trie Table
 	std::ifstream file(argv[1]);
-	while(!file.eof())
-	{
-		file >> str;
-		trie.put(str,str.length());
+	std::locale loc("");
+	file.imbue(loc);
+	while(file >> str){
+		trie.put(str,str);
 		vec.push_back(str);
 	}
 	file.close();
-	cout << "Total Number of Nodes Before Compression: " << trie.size() << endl;
-	//if(trie.size()!=99451){cout << "Initial Size Incorrect" << endl;return 1;}
-	cout << "Total Nodes Removed: " << trie.compress() << endl;
-	cout << "Total Number of Nodes After Compression: " << trie.size() << endl;
 
-	cout << "[I] for interactive mode, anything else for Debug Mode" << endl;
+/*
+	std::wofstream file2("Vec.txt");
+	std::wofstream file3("TVec.txt");
+	file2.imbue(loc);
+	file3.imbue(loc);
+	trie.compress();
+	vec_2 = trie.keys();	
+	std::sort(vec.begin(),vec.end());	
+	std::sort(vec_2.begin(),vec_2.end());	
+	if(vec.size()!=vec_2.size()){
+		cout << " X\nTrie Tree has more or contains missing keys\n" << endl;
+		exit(EXIT_FAILURE);	
+	}
+	for(size_t i = 0;i<vec.size();i++){
+		file2 << vec[i] << endl;
+		file3 << vec_2[i] << endl;
+	}
+	file2.close();
+	file3.close();
+	system("gedit -s Vec.txt &");
+	system("gedit -s TVec.txt &");
+*/
+
+
+
+	cout << "Total Number of Words:                                 " << vec.size() << endl;
+	cout << "Total Number of Words in Trie Tree:                    " << trie.size() << endl;
+	cout << "Total Number of Nodes in Trie Tree Before Compression: " << trie.num() << "\t words:" << trie.keys().size() << endl;
+	cout << "Total Number of Nodes in Trie Tree Removed:            " << trie.compress() << endl;
+	cout << "Total Number of Nodes in Trie Tree After Compression:  " << trie.num() << "\t words:" << trie.keys().size() << endl;
+	cout << "[D] for Debug Mode, anything else for Interactive Mode " << endl;
+	
 	str = getche();cout << endl;
 	//DebugMode
-	if(tolower(str[0])!='i'){
+	if(tolower(str[0])==L'd'){
+		cout << endl << "DEBUG MODE SELECTED" << endl << endl;
+		vec_2 = trie.keys();
+		
 		int size = (int)vec.size();
-		int mod = size * 10/100;
-		int p = -10;
+		int size_2 = (int)vec_2.size();
 		cout << "Processing " << size << " word/s ";
+		if(size!=size_2){
+			cout << " X\nTrie Tree has more or contains missing keys\n" << endl;
+			exit(EXIT_FAILURE);	
+		}
+
+		std::sort(vec.begin(),vec.end());	
+		std::sort(vec_2.begin(),vec_2.end());	
+		int mod = size * 10/100;
 		for(int i=0;i < size;i++){
-			str = vec[i];
-			if(!trie.contains(str)){
-				cout << "X\nTrie Tree Could Not Find " << str  << endl;
+			if(vec[i].compare(vec_2[i])!=0){
+				printf(" X\nTrie Tree Contains Unqualified Value at Position[%d] File=[%s]: TrieTreeVector=[%s]\n"
+						,i,vec[i].c_str(),vec_2[i].c_str());
 				exit(EXIT_FAILURE);	
 			}
 			if(i%mod==0){
-				p+=10;
 				cout << '=';
 			}
 		}
 		cout << "> Processing Completed" << endl;
-	}else
+	}else{
 		//Interactive User 
+		cout << endl << "INTERACTIVE MODE SELECTED" << endl << endl;
 		do{
 			cout << "\n\nPlease Enter A Word : (Q)uit" << endl;
 			str = "";
 			cout << '[';
 			for(int i = 0;(str+=getche())[i]!='\n';i++){//while the character is not string
-				if(str[0] == 'Q'){
+				if(tolower(str[0]) == L'Q'){
 					cout <<  "uitting...]" << endl;
 					goto QUIT;
-				}else if(!isalpha(str[i])){
+				}else if(!isprint(str[i])){
 					cout << "\n[Quitting...]" << endl;
 					goto QUIT;
 				}
-				if(!str.empty() && trie.contains(str)){
-					cout << "] is contained within the Trie-Table" << endl;
+				if(!str.empty() && trie.contains(str,true)){
+					cout << "] is contained within the Trie-Table Value: " << trie.get(str)<< endl;
 					cout << '[' << str;
 				}else{
-					string lp = trie.longestPrefix(str);
+					string lp = trie.longestPrefix(str,true);
+					vec_2 = trie.prefixMatch(str,true);
 					if(!lp.empty()){
-						cout << "] current closest match is " << lp << endl;					
+						cout << "] current closest match is " << lp << endl;
+						cout << "Future Matches Include: ";					
+						for(int i = 0;i<(int)vec_2.size()&&i<5;i++){		
+							cout << vec_2[i] << ", ";
+						}
+						cout << endl;
 						cout << '[' << str;
 					}
+					vec_2.clear();
 				}	
 
 			}
 			cout << endl << endl;
 			str.pop_back();//remove newline character
-			if(!trie.contains(str)) ::printf("[%s] is not contained within the Trie-Table\n\n",str.c_str());	
+			if(!trie.contains(str,true)) ::printf("[%s] is not contained within the Trie-Table\n\n",str.c_str());	
 			//check for validity
-			cout << "Linux System Command:\n";
-			string command = "grep \"^" + str + "$\" " + argv[1];
-			std::system(command.c_str());
+			cout << "Linux System Command:"<<endl;
+			std::stringstream command;
+			command << "grep -i \"^" << str.c_str() << "$\" " << argv[1];
+			std::system(command.str().c_str());
 			cout << "-------------------------" <<endl;
 			//This Helps Flush input stream before next use
 			cin.clear();
 			fflush(stdin);
 		}while(true);
+	}
 QUIT:
 	return 0;
 }

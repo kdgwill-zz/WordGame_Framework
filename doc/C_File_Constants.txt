@@ -1,0 +1,60 @@
+------------------------------------------------------
+Mode String	Meaning
+------------------------------------------------------
+    "r"		Open a text file for reading.
+------------------------------------------------------
+    "w" 	Open a text file for writing, 
+		truncating an existing file 
+		to zero length, or creat-
+		ing the file if it does not exist.
+------------------------------------------------------
+    "a" 	Open a text file for writing, appending 
+		to the end of an existing file, or creat-
+		ing the file if it does not exist.
+------------------------------------------------------
+    "r+" 	Open a text file for update 
+		(that is, for both reading and writing).
+------------------------------------------------------
+    "w+" 	Open a text file for update 
+		(reading and writing), 
+		first truncating the file to
+		zero length if it exists or creating the 
+		file if it does not exist.
+------------------------------------------------------
+     "a+" 	Open a text file for update (reading and writing),
+		appending to the end of an existing file, or creating 
+		the file if it does not yet exist; the whole file can be
+		read, but writing can only be appended.
+------------------------------------------------------
+"rb","wb","ab"  Like the preceding modes, except they use binary mode 
+"ab+","a+b",    instead of text mode.
+"wb+","w+b",
+"ab+","a+b" 
+------------------------------------------------------
+"wx","wbx",	(C11) Like the non-x modes, except they fail if the file
+"w+x","wb+x"    already exists and they open a file in exclusive mode, 
+"w+bx" 		if possible.
+------------------------------------------------------
+
+
+
+int setvbuf(FILE * restrict fp, char * restrict buf, int mode, size_t size);
+Mode	Meaning
+_IOFBF  fully buffered (buffer flushed when full)
+_IOLBF  means line-buffered 
+	(buffer flushed when full or when a newline is written)
+_IONBF	means nonbuffered. The function returns zero if successful,
+	nonzero otherwise.
+
+
+
+
+
+
+
+
+
+
+
+
+

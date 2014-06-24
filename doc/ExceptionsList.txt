@@ -1,4 +1,5 @@
 /**
+ * #include <stdexcept>
 //std::exception		An exception and parent class of all the standard C++ exceptions.
  * std::bad_alloc		This can be thrown by new.
  * std::bad_cast		This can be thrown by dynamic_cast.
