@@ -15,16 +15,16 @@ int main(){
         //compression
 	//char s3[] = "TO 1 BE 2 OR 3 NOT 4 TO 5 BE 6 OR 7 TO 8 BE 9 OR 10 NOT 11";
 	//char s3[] = u8"TOBEORNOTTOBEORTOBEORNOT\u00df\u6c34\U0001d10b";
-	printf("[84, 79, 66, 69, 79, 82, 78, 79, 84, 256, 258, 260, 265, 259, 261, 263]\n");
 	char s3[] = "TOBEORNOTTOBEORTOBEORNOT";
-	printf("Encoding[%s]\n",s3);
-	int * e = encode(s3);
+	printf("Encoding Message:[%s]\n",s3);
+	encoded_message e = encode(s3);
 	printf("Decoding[");
-	for(int i=0;e[i+1]!=EOF;i++){
-		printf("%d, ",e[i]);
+	for(size_t i=0;i<e.size-1;i++){
+		printf("%d, ",e.arr[i]);
 	}
 	printf("]\n");
         //decompression
-        char * s4 = decode(e);
-	printf("Encoded Message:%s\n",s4);
+        decoded_message s4 = decode(e.arr);
+	printf("Encoded Message:  %s\n",s4.arr);
+	printf("LZW Compression | Decompression %s\n", strcmp(s4.arr,s3)==0?"Success":"Failure");
 }

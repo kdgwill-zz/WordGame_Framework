@@ -4,3 +4,6 @@ Trie
 Hashmap
 LZW
 Android
+
+
+**IMPORTANT: This implementation does not support unicode characters not supported by the ascii table **
