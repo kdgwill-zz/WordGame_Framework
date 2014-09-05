@@ -3,7 +3,12 @@
  * **  --------------------------------------------------------------------------
  * **  
  * **  Compresses data using LZW algorithm.
- * **  
+ * ** 
+ * **  Known Issues: Currently only Ascii characters and symbols are supported. 
+ * **                The algorithm uses all typical ascii characters from 0 to 256
+ * **                however, everything past 127 is a wild card as unicode is not 
+ * **                properly supported in C/C++ without additional libraries 
+ * ** 
  * **  Author: Kyle D. Williams
  * **
  * **
@@ -29,16 +34,16 @@ typedef struct decoded_message{
 }decoded_message;
 
 //Compress Directly To File
-void compress(char src[],char dst[]);
+void compress(const char * src,const char * dst );
 
 //Return Compressed txt
-encoded_message encode(char input[]);
+encoded_message encode(char * input);
 
 //Decompress Directly To File
-void decompress(char src[],char dst[]);
+void decompress(const char * src ,const char * dst);
 
 //Return Decompressed txt
-decoded_message decode(int input[]);
+decoded_message decode(int * input);
 
 #ifdef __cplusplus
 }
