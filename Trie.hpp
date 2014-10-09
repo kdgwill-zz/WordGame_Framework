@@ -17,6 +17,7 @@
 #define COM_WORDGAME_UTILITY_TRIE_HPP_KDGWILL
 #include <string>
 #include <vector>
+#include <stdexcept>
 
 template<typename value>
 class Trie{
@@ -54,9 +55,15 @@ class Trie{
 		//This is specifically for PrefixMatch and should not be used outside of method
 		TrieNode * getPrefixNode(TrieNode * x,std::string key,std::string prefix,size_t d,const bool & ignoreCase=false)const;
 		TrieNode * compress(TrieNode * x);
+		//HELPER FUNCTIONS
+		void __toLowerCase(std::string & s) const;
+		size_t __lcp(size_t d,const std::string & s1,const std::string & s2) const;
+		void cleanUp(TrieNode * X);
 	public:
 		//Due to Language it is required that the default/Null value is set i.e int(0) or bool(false)
 		Trie(value defaultValue);
+		//Cleans up Trie Node
+		~Trie();
 		//return number of key-value pairs
 		size_t size()const;
 		//return number of nodes int the tree for debugging purposes

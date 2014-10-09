@@ -1,0 +1,160 @@
+#include "LZW.hpp"//used for debugging purposes will not cause cyclical include 
+
+static const int R = 256;  // number of input chars
+static const int W = 16;   // codeword width
+static const int L = 65535; // number of codewords = 2^W
+static const int WB = W/8; //number of bytes of max code width
+
+void compressLZW(std::istream & src, std::ostream & dst){
+	std::setlocale(LC_ALL,"");
+	//setlocale(LC_ALL, "en_US.UTF8");
+	Trie<uint16_t> st(0);
+	uint16_t tempInt = 0;
+	std::string tempS = "";
+	char tempArr[WB] = {'\0'};//need room for \0 else append will not work
+	for (int i = 1; i < R; i++){
+		st.put(std::string(1,char(i)), i);
+	}
+	uint16_t code = R+1;  // R is codeword for EOF
+
+	src.read((char *) (&tempArr), WB);
+	//gcount returns number of successfully extracted characters from read function
+	tempS.append(tempArr,0,src.gcount());
+	//begin compression
+	while(!tempS.empty()) {
+
+		std::string s;
+		if(src.eof()){
+			s = st.longestPrefix(tempS);
+		}else do{
+			s = st.longestPrefix(tempS);  // Find max prefix match s.
+			if(tempS.length() > s.length())break;
+			src.read((char *) (&tempArr), WB);
+			tempS.append(tempArr,0,src.gcount());
+			//break if mismatch
+		}while(!src.eof());//prior break handles eof
+
+		tempInt = st.get(s);
+		dst.write((char *) (&tempInt), WB); //Print s's encoding
+
+		size_t t = s.length();
+		if (t < tempS.length() && code < L){    // Add s to symbol table.
+			st.put(tempS.substr(0, t + 1), code++);
+		}
+		tempS = tempS.substr(t);            // Scan past s in input.
+	}
+	dst.write((char *) (&R), WB);
+	//THROW AN EXCEPTION IF SRC IS NOT AT ENDO OF FILE
+	if(!src.eof() || !tempS.empty()){		
+		std::cerr << "Error Compressing File" << std::endl;
+		exit(EXIT_FAILURE);	
+	}
+}
+
+void decompressLZW(std::istream & src, std::ostream & dst){
+	std::setlocale(LC_ALL,"");
+	std::string st[L] = {"\0"};
+	int i; // next available codeword value
+
+	// initialize symbol table with all 1-character strings
+	for (i = 0; i < R; i++)
+		st[i] = std::string(1,char(i));
+	st[i++] = "";                        // (unused) lookahead for EOF
+
+	uint16_t codeword = 0;
+	src.read((char *) (&codeword), WB);
+
+	if (codeword == R) return;           // expanded message is empty string
+
+	std::string val = st[codeword];
+
+	while (true) {
+		//dst.write((char *) (&val), WB);//this doesnt work for some reason
+		dst << val;
+		src.read((char *) (&codeword), WB);
+		if (codeword == R) break;
+		std::string s = st[codeword];
+		if (i == codeword) s = val + val[0];   // special case hack
+		if (i < L) st[i++] = val + s[0];
+		val = s;
+	}
+	//val = '\0';
+	//dst.write((char *) (&val), WB);
+	//dst << '\0';
+	if(!src.eof()){		
+		//std::cerr << "Error Compressing File" << std::endl;
+		//exit(EXIT_FAILURE);	
+	}
+}
+
+//Question Number 4.8 on http://c-faq.com/ptrs/passptrinit.html
+//Remember that arguments in C are passed by value. In the code above, 
+//the called function alters only the passed copy of the pointer. 
+//To make it work as you expect, one fix is to pass the address of the pointer
+static void __openFile(const char * name,std::fstream & file, std::ios_base::openmode mode){
+	file.clear();
+	file.open(name,mode);
+	if(!file.is_open()){		
+		std::cerr << "Can not open " << name << std::endl;
+		exit(EXIT_FAILURE);	
+	}
+	/**
+	//set the buffer to an arbitrary length to prevent excessive writing to file
+	//even though write is called C waits for the buffer to be filled before writing to file
+	if(setbuf!=0) //has to be done this way else setvbuf would execute regardless if enabled
+	if (std::setvbuf(file,NULL,_IOFBF,L)!=0){
+	fputs("Can't create output buffer\n",stderr);
+	exit(EXIT_FAILURE);
+	}
+	*/
+}
+
+static void __closeFile(std::fstream & file){
+	file.clear();
+	file.close();
+	//	fprintf(stderr,"Error in closing files %s\n",name);
+}
+
+void compress(const char * src,const char * dst){
+	//remember reading and writing in binary can cause issues due to nonstandard compiler implementations
+	std::fstream srcp; __openFile(src,srcp,std::ios_base::in | std::ios_base::binary);
+	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary);
+	//compression
+	compressLZW(srcp,dstp);	
+	//Clean up
+	__closeFile(srcp);
+	__closeFile(dstp);
+}
+
+void decompress(const char * src,const char * dst){
+	//Open Files
+	std::fstream srcp; __openFile(src,srcp,std::ios_base::in | std::ios_base::binary);
+	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary);
+	//decompression
+	decompressLZW(srcp,dstp);	
+	//clean up
+	__closeFile(srcp);
+	__closeFile(dstp);
+}
+
+void compressLZW(char * src, std::ostringstream & dstp){
+	//remember reading and writing in binary can cause issues due to nonstandard compiler implementations
+	std::fstream srcp; __openFile(src,srcp,std::ios_base::in | std::ios_base::binary);
+	//compression
+	compressLZW(srcp,dstp);	
+	//Clean up
+	__closeFile(srcp);
+	//freeze stream
+	dstp.str();
+}
+
+void decompressLZW(std::istringstream & srcp, char * dst){
+	//Open Files
+	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary);
+	//decompression
+	decompressLZW(srcp,dstp);	
+	//clean up
+	__closeFile(dstp);
+	//freeze stream
+	srcp.str();
+}

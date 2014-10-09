@@ -1,28 +1,25 @@
-#include <stdexcept>
-
-//static 
-void __toLowerCase(std::string & s){
-	for(size_t i = 0; i<s.length()-1; i++){
-		s[i] = ::tolower(s[i]);
-	}
-}
-
-//Longest Common Prefix
-//use d as offset to s1 then begin compare s2
-//static 
-size_t __lcp(size_t d,const std::string & s1,const std::string & s2){
-	size_t c = 0;
-	//Must Determine position of last matching character and match the letters 
-	//after it meaning decrease total length of search by 1
-	for(size_t i = 0; (d+i)<s1.length()-1 && i<s2.length()-1;i++){
-		if(s1[d+i]!=s2[i])break;
-		c++; 
-	}
-	return c;
-}
+#include "Trie.hpp" //Included for debugging purposes to help vim code syntax highlighter should not cause cyclical include
 
 template<typename value>
 Trie<value>::Trie(value defaultValue):defVal(defaultValue){}
+
+template<typename value>
+Trie<value>::~Trie(){
+	cleanUp(this->root);
+	if(wordCount!=0 || nodeCount!=0)
+		perror("Their was an Error Cleaning Up Trie Nodes");
+}
+
+template<typename value>
+void Trie<value>::cleanUp(TrieNode * x){
+	if(x==nullptr)return;
+	cleanUp(x->left);
+	cleanUp(x->mid);
+	cleanUp(x->right);
+	if(x->val!=defVal)this->wordCount--; //word found
+	delete x;
+	this->nodeCount--;	
+}
 
 template<typename value>
 size_t Trie<value>::size()const{return wordCount;}
@@ -204,4 +201,25 @@ typename Trie<value>::TrieNode * Trie<value>::compress(TrieNode * x){
 	x->right = compress(x->right);
 
 	return x;
+}
+
+template<typename value>
+void Trie<value>::__toLowerCase(std::string & s) const{
+	for(size_t i = 0; i<s.length()-1; i++){
+		s[i] = ::tolower(s[i]);
+	}
+}
+
+//Longest Common Prefix
+//use d as offset to s1 then begin compare s2
+template<typename value>
+size_t Trie<value>::__lcp(size_t d,const std::string & s1,const std::string & s2) const{
+	size_t c = 0;
+	//Must Determine position of last matching character and match the letters 
+	//after it meaning decrease total length of search by 1
+	for(size_t i = 0; (d+i)<s1.length()-1 && i<s2.length()-1;i++){
+		if(s1[d+i]!=s2[i])break;
+		c++; 
+	}
+	return c;
 }

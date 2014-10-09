@@ -32,31 +32,6 @@ int main(int argc , char * argv[]){
 	}
 	file.close();
 
-/*
-	std::wofstream file2("Vec.txt");
-	std::wofstream file3("TVec.txt");
-	file2.imbue(loc);
-	file3.imbue(loc);
-	trie.compress();
-	vec_2 = trie.keys();	
-	std::sort(vec.begin(),vec.end());	
-	std::sort(vec_2.begin(),vec_2.end());	
-	if(vec.size()!=vec_2.size()){
-		cout << " X\nTrie Tree has more or contains missing keys\n" << endl;
-		exit(EXIT_FAILURE);	
-	}
-	for(size_t i = 0;i<vec.size();i++){
-		file2 << vec[i] << endl;
-		file3 << vec_2[i] << endl;
-	}
-	file2.close();
-	file3.close();
-	system("gedit -s Vec.txt &");
-	system("gedit -s TVec.txt &");
-*/
-
-
-
 	cout << "Total Number of Words:                                 " << vec.size() << endl;
 	cout << "Total Number of Words in Trie Tree:                    " << trie.size() << endl;
 	cout << "Total Number of Nodes in Trie Tree Before Compression: " << trie.num() << "\t words:" << trie.keys().size() << endl;
@@ -75,6 +50,7 @@ int main(int argc , char * argv[]){
 		cout << "Processing " << size << " word/s ";
 		if(size!=size_2){
 			cout << " X\nTrie Tree has more or contains missing keys\n" << endl;
+			printf("Supposed/Actual = [%d/%d]",size,size_2);
 			exit(EXIT_FAILURE);	
 		}
 
@@ -82,9 +58,11 @@ int main(int argc , char * argv[]){
 		std::sort(vec_2.begin(),vec_2.end());	
 		int mod = size * 10/100;
 		for(int i=0;i < size;i++){
-			if(vec[i].compare(vec_2[i])!=0){
-				printf(" X\nTrie Tree Contains Unqualified Value at Position[%d] File=[%s]: TrieTreeVector=[%s]\n"
-						,i,vec[i].c_str(),vec_2[i].c_str());
+			string s = trie.get(vec_2[i]);
+			if(s.compare(vec[i])!=0){
+				printf(" X\nTrie Tree Contains Unqualified Value at Position");
+				printf("[%d] FileValue=[%s]: TrieTree Key/Value=[%s/%s]:\n"
+					,i, vec[i].c_str(),   vec_2[i].c_str(),s.c_str());
 				exit(EXIT_FAILURE);	
 			}
 			if(i%mod==0){
@@ -100,12 +78,13 @@ int main(int argc , char * argv[]){
 			str = "";
 			cout << '[';
 			for(int i = 0;(str+=getche())[i]!='\n';i++){//while the character is not string
-				if(tolower(str[0]) == L'Q'){
-					cout <<  "uitting...]" << endl;
-					goto QUIT;
-				}else if(!isprint(str[i])){
+				//if(tolower(str[0]) == L'Q'){
+				//	cout <<  "uitting...]" << endl;
+				//	goto QUIT;
+				//}else 
+				if(!isprint(str[i])){
 					cout << "\n[Quitting...]" << endl;
-					goto QUIT;
+					goto QUIT;//HAHA yeah i used a goto in a test case
 				}
 				if(!str.empty() && trie.contains(str,true)){
 					cout << "] is contained within the Trie-Table Value: " << trie.get(str)<< endl;
