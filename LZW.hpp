@@ -17,17 +17,27 @@
 #include <string> 
 #include <cstdint>
 #include "Trie.hpp"
-//Compress Raw Stream ideally use sstream or fstream
+//Compress Raw Stream ideally use stringstream or fstream
 void compressLZW(std::istream & src, std::ostream & dst);
-//Decompress Raw Stream ideally use sstream or fstream
+//Decompress Raw Stream ideally use stringstream or ifstream
 void decompressLZW(std::istream & src, std::ostream & dst);
+
 //Compress Directly to File
-void compressLZW(char * src, char * dst);
+void compressLZW(const char * src,const char * dst);
 //Decompress Directly to File
-void decompressLZW(char * src, char * dst);
-//Compress Complex Stream
-void compressLZW(char * src, std::ostringstream & dst);
-//Decompress Complex String Stream
-void decompressLZW(std::istringstream & src, char * dst);
-#include "LZW.ii" //quick hack to add functionality without linking
+void decompressLZW(const char * src, const char * dst);
+
+//Compress From Stream to File
+void compressLZW(std::istream & src,const char * dst);
+//Decompress File To Stream
+void decompressLZW(const char * src, std::ostream & dst);
+
+//Compress Objects to File
+template<typename value>
+void compressLZW(const Trie<value> & srct,const char * dst);
+//Deompress Objects from File
+template<typename value>
+void decompressLZW(const char * src,Trie<value>  & dstt);
+
+#include "LZW.ii" //quick hack to add functionality wiithout linking
 #endif

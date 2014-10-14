@@ -1,5 +1,8 @@
 #include "LZW.hpp"//used for debugging purposes will not cause cyclical include 
 
+static void __openFile(const char * name,std::fstream & file, std::ios_base::openmode mode);
+static void __closeFile(std::fstream & file);
+
 static const int R = 256;  // number of input chars
 static const int W = 16;   // codeword width
 static const int L = 65535; // number of codewords = 2^W
@@ -44,7 +47,7 @@ void compressLZW(std::istream & src, std::ostream & dst){
 		tempS = tempS.substr(t);            // Scan past s in input.
 	}
 	dst.write((char *) (&R), WB);
-	//THROW AN EXCEPTION IF SRC IS NOT AT ENDO OF FILE
+	//THROW AN EXCEPTION IF SRC IS NOT AT END OF FILE
 	if(!src.eof() || !tempS.empty()){		
 		std::cerr << "Error Compressing File" << std::endl;
 		exit(EXIT_FAILURE);	
@@ -69,8 +72,9 @@ void decompressLZW(std::istream & src, std::ostream & dst){
 	std::string val = st[codeword];
 
 	while (true) {
-		//dst.write((char *) (&val), WB);//this doesnt work for some reason
-		dst << val;
+		//remember writing back to uncompressed file has no bit constraints
+		dst.write(val.c_str(), val.length());//this doesnt seem to work 100% for some reason
+		//dst << val;
 		src.read((char *) (&codeword), WB);
 		if (codeword == R) break;
 		std::string s = st[codeword];
@@ -81,10 +85,68 @@ void decompressLZW(std::istream & src, std::ostream & dst){
 	//val = '\0';
 	//dst.write((char *) (&val), WB);
 	//dst << '\0';
-	if(!src.eof()){		
-		//std::cerr << "Error Compressing File" << std::endl;
-		//exit(EXIT_FAILURE);	
+	if(src.peek()!=EOF){		
+		std::cerr << "Error Compressing File" << std::endl;
+		exit(EXIT_FAILURE);	
 	}
+}
+
+
+void compressLZW(const char * src,const char * dst){
+	//remember reading and writing in binary can cause issues due to nonstandard compiler implementations
+	std::fstream srcp; __openFile(src,srcp,std::ios_base::in | std::ios_base::binary);
+	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary);
+	//compression
+	compressLZW(srcp,dstp);	
+	//Clean up
+	__closeFile(srcp);
+	__closeFile(dstp);
+}
+
+void decompressLZW(const char * src,const char * dst){
+	//Open Files
+	std::fstream srcp; __openFile(src,srcp,std::ios_base::in | std::ios_base::binary);
+	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary);
+	//decompression
+	decompressLZW(srcp,dstp);	
+	//clean up
+	__closeFile(srcp);
+	__closeFile(dstp);
+}
+
+void compressLZW(std::istream & srcp,const char * dst){
+	//remember reading and writing in binary can cause issues due to nonstandard compiler implementations
+	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary);
+	//compression
+	compressLZW(srcp,dstp);	
+	//Clean up
+	__closeFile(dstp);
+
+}
+
+void decompressLZW(const char * src, std::ostream & dstp){
+	//Open Files
+	std::fstream srcp; __openFile(src,srcp,std::ios_base::in | std::ios_base::binary);
+	//decompression
+	decompressLZW(srcp,dstp);	
+	//clean up
+	__closeFile(srcp);
+}
+
+template<typename value>
+void compressLZW(const Trie<value> & srct,const char * dst){
+	std::stringstream src(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+	srct.write(src);
+	src.seekp(0);
+	compressLZW(src,dst);
+}
+
+template<typename value>
+void decompressLZW(const char * src,Trie<value>  & dstt){
+	std::stringstream dst(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+	decompressLZW(src,dst);
+	dst.seekg(0);
+	dstt.read(dst);
 }
 
 //Question Number 4.8 on http://c-faq.com/ptrs/passptrinit.html
@@ -113,48 +175,4 @@ static void __closeFile(std::fstream & file){
 	file.clear();
 	file.close();
 	//	fprintf(stderr,"Error in closing files %s\n",name);
-}
-
-void compress(const char * src,const char * dst){
-	//remember reading and writing in binary can cause issues due to nonstandard compiler implementations
-	std::fstream srcp; __openFile(src,srcp,std::ios_base::in | std::ios_base::binary);
-	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary);
-	//compression
-	compressLZW(srcp,dstp);	
-	//Clean up
-	__closeFile(srcp);
-	__closeFile(dstp);
-}
-
-void decompress(const char * src,const char * dst){
-	//Open Files
-	std::fstream srcp; __openFile(src,srcp,std::ios_base::in | std::ios_base::binary);
-	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary);
-	//decompression
-	decompressLZW(srcp,dstp);	
-	//clean up
-	__closeFile(srcp);
-	__closeFile(dstp);
-}
-
-void compressLZW(char * src, std::ostringstream & dstp){
-	//remember reading and writing in binary can cause issues due to nonstandard compiler implementations
-	std::fstream srcp; __openFile(src,srcp,std::ios_base::in | std::ios_base::binary);
-	//compression
-	compressLZW(srcp,dstp);	
-	//Clean up
-	__closeFile(srcp);
-	//freeze stream
-	dstp.str();
-}
-
-void decompressLZW(std::istringstream & srcp, char * dst){
-	//Open Files
-	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary);
-	//decompression
-	decompressLZW(srcp,dstp);	
-	//clean up
-	__closeFile(dstp);
-	//freeze stream
-	srcp.str();
 }

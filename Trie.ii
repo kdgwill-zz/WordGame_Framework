@@ -7,7 +7,7 @@ template<typename value>
 Trie<value>::~Trie(){
 	cleanUp(this->root);
 	if(wordCount!=0 || nodeCount!=0)
-		perror("Their was an Error Cleaning Up Trie Nodes");
+		std::cerr<<"Their was an Error Cleaning Up Trie Nodes";
 }
 
 template<typename value>
@@ -32,6 +32,17 @@ value Trie<value>::getDefaultValue()const{return defVal;}
 
 template<typename value>
 bool Trie<value>::contains(std::string key,const bool & ignoreCase)const{return get(key,ignoreCase)!=defVal;}
+
+template<typename value>
+std::string Trie<value>::details(){
+	std::string ss;
+	ss += "Trie is ";
+	if (ratio!=0) ss+="Compressed w/ Ratio[" +std::to_string(ratio) + "]\n";
+	else ss+= "Uncompressed\n";
+	ss += "Total Number of words in Trie: " + std::to_string(wordCount) + "\n";
+	ss += "Total Number of Nodes in Trie: " + std::to_string(nodeCount) + "\n";
+	return ss;
+}
 
 template<typename value>
 value Trie<value>::get(std::string key,const bool & ignoreCase) const {
@@ -127,14 +138,14 @@ void Trie<value>::collect(TrieNode * x, std::string prefix, std::vector<std::str
 }
 
 template<typename value>
-std::vector<std::string> Trie<value>::keys(){
+std::vector<std::string> Trie<value>::keys() const{
 	std::vector<std::string> vec;
 	collect(root, u8"", vec);
 	return vec;	
 }
 
 template<typename value>
-std::vector<std::string> Trie<value>::prefixMatch(std::string prefix,const bool & ignoreCase){
+std::vector<std::string> Trie<value>::prefixMatch(std::string prefix,const bool & ignoreCase) const{
 	if(ignoreCase)__toLowerCase(prefix);
 	std::vector<std::string> vec;
 	TrieNode * x = getPrefixNode(root, prefix, u8"",0,ignoreCase);
@@ -171,6 +182,7 @@ size_t Trie<value>::compress(){
 	size_t oldN = nodeCount;
 	//Should think about Sorting and reseting root 
 	root = compress(root);		
+	ratio = 1.0f - 1.0f*nodeCount/oldN;	
 	return oldN - nodeCount;
 }
 
