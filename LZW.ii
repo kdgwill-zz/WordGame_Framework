@@ -95,7 +95,7 @@ void decompressLZW(std::istream & src, std::ostream & dst){
 void compressLZW(const char * src,const char * dst){
 	//remember reading and writing in binary can cause issues due to nonstandard compiler implementations
 	std::fstream srcp; __openFile(src,srcp,std::ios_base::in | std::ios_base::binary);
-	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary);
+	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
 	//compression
 	compressLZW(srcp,dstp);	
 	//Clean up
@@ -106,7 +106,7 @@ void compressLZW(const char * src,const char * dst){
 void decompressLZW(const char * src,const char * dst){
 	//Open Files
 	std::fstream srcp; __openFile(src,srcp,std::ios_base::in | std::ios_base::binary);
-	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary);
+	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
 	//decompression
 	decompressLZW(srcp,dstp);	
 	//clean up
@@ -138,6 +138,7 @@ void compressLZW(const Trie<value> & srct,const char * dst){
 	std::stringstream src(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
 	srct.write(src);
 	src.seekp(0);
+	std::cout << src.str() << std::endl <<std::endl;
 	compressLZW(src,dst);
 }
 
@@ -145,7 +146,8 @@ template<typename value>
 void decompressLZW(const char * src,Trie<value>  & dstt){
 	std::stringstream dst(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
 	decompressLZW(src,dst);
-	dst.seekg(0);
+	dst.seekp(0);
+	std::cout << dst.str() << std::endl <<std::endl;
 	dstt.read(dst);
 }
 
