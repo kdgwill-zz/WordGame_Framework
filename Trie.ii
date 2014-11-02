@@ -34,6 +34,13 @@ template<typename value>
 bool Trie<value>::contains(std::string key,const bool & ignoreCase)const{return get(key,ignoreCase)!=defVal;}
 
 template<typename value>
+bool Trie<value>::equals(const Trie &other_trie)const{
+	if(size()!=other_trie.size())return false;
+	//should not require sorting if identical
+	return keys()==other_trie.keys();
+}
+
+template<typename value>
 std::string Trie<value>::details(){
 	std::string ss;
 	ss += "Trie is ";
@@ -235,3 +242,69 @@ size_t Trie<value>::__lcp(size_t d,const std::string & s1,const std::string & s2
 	}
 	return c;
 }
+
+///////////////////WARNING ATROCIOUS - WICKEDLY HORRIFYING AND UGLY CODE AHEAD 
+///////////////////POLL FOR RECREATION AT A LATER DATE
+///////////////////Used a stream stream to store value and then store length of stream and 
+//////////////////then convert stream to string and store char_array 
+//////////////////This was more reliables as it can store both primatives AND objects 
+template<typename value>
+std::ostream & Trie<value>::write( std::ostream & dst)const{
+	std::stringstream temp;
+	std::string str;
+	size_t szlg = sizeof(long);
+
+	long sz = (long)this->size();
+	dst.write((char *)(&sz),szlg);//used to check if all words loaded properly
+	for(const std::string & key:this->keys()){
+		//write key
+		//do this to get size of string and proper value to store
+		temp.str("");temp.clear();
+		temp << key;
+		str = temp.str();
+		sz = (long)str.length()+1;//a bit of padding for correct reading
+		dst.write((char *)(&sz),szlg);
+		dst.write(str.c_str(),sz);
+
+		//write value	
+		temp.str("");temp.clear();
+		temp << this->get(key); //Does this because more reliable when serializing generic objects
+		str = temp.str();
+		sz = (long)str.length()+1;//a bit of padding for correct reading
+		dst.write((char *)(&sz),szlg);
+		dst.write(str.c_str(),sz);
+	}
+	return dst;
+}
+
+template<typename value>
+std::istream & Trie<value>::read( std::istream  & src){
+	std::stringstream temp;
+	size_t szlg = sizeof(long);
+
+	long sz = 0;
+	long size=0; src.read((char *)(&size),szlg);//check if all words loaded properly
+	while(src.peek()!=EOF){//need early termination // checking src.eof will not work in this case
+		//recover key
+		src.read((char *)(&sz),szlg);
+		char tmp[sz];src.read(tmp,sz);
+		std::string key(tmp);
+		
+		//recover value
+		value val;
+		temp.str("");temp.clear();
+		src.read((char *)(&sz),szlg);
+		char tmp2[sz];src.read(tmp2,sz);
+		temp << tmp2;
+		temp >> val;//this makes deserializaing generic objects leagues easier	
+		
+		//Add To Tree
+		this->put(key,val);
+	}
+	if(size!=(long)this->size()){
+		std::cerr << "Error loading Trie!" << size << "/"<<this->size()<<std::endl;
+		exit(EXIT_FAILURE);	
+	}
+	return src;
+}
+

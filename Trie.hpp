@@ -95,8 +95,10 @@ class Trie{
 		//compress the table making it immutable returning the number of nodes removed
 		size_t compress();
 		//Write formated Trie to Output Stream
+		//For write to work a values operator<< must be overloaded correctly
 		std::ostream & write( std::ostream & dst)const;
 		//Read formated Trie from Input Stream
+		//For read to work a values operator>> must be overloaded correctly
 		std::istream & read( std::istream  & src);
 		//Compare Trie trees
 		bool equals(const Trie &other_trie)const;
@@ -116,81 +118,4 @@ class Trie{
 //Take not this is added inside the header gaurd
 //This is the proper way to include template definition files 
 #include "Trie.ii"
-
-template<typename value>
-bool Trie<value>::equals(const Trie &other_trie)const{
-	if(size()!=other_trie.size())return false;
-	//should not require sorting if identical
-	return keys()==other_trie.keys();
-}
-
-///////////////////WARNING ATROCIOUS - WICKEDLY HORRIFYING AND UGLY CODE AHEAD 
-///////////////////POLL FOR RECREATION AT A LATER DATE
-///////////////////Used a stream stream to store value and then store length of stream and 
-//////////////////then convert stream to string and store char_array 
-//////////////////This was more reliables as it can store both primatives AND objects 
-template<typename value>
-std::ostream & Trie<value>::write( std::ostream & dst)const{
-	std::stringstream temp;
-	std::string str;
-	size_t szlg = sizeof(long);
-
-	long sz = (long)this->size();
-	dst.write((char *)(&sz),szlg);//used to check if all words loaded properly
-	for(const std::string & key:this->keys()){
-		//write key
-		//do this to get size of string and proper value to store
-		temp.str("");temp.clear();
-		temp << key;
-		str = temp.str();
-		sz = (long)str.length()+1;//a bit of padding for correct reading
-		//break;
-		dst.write((char *)(&sz),szlg);
-		break;
-		dst.write(str.c_str(),sz);
-		std::cout << "Saved Size: "<< sz;break;
-		//write value	
-		temp.str("");temp.clear();
-		temp << this->get(key);
-		str = temp.str();
-		sz = (long)str.length()+1;//a bit of padding for correct reading
-		dst.write((char *)(&sz),szlg);
-		dst.write(str.c_str(),sz);
-	}
-	return dst;
-}
-
-template<typename value>
-std::istream & Trie<value>::read( std::istream  & src){
-	std::stringstream temp;
-	size_t szlg = sizeof(long);
-	
-	long sz = 0;
-	long size=0; src.read((char *)(&size),szlg);//check if all words loaded properly
-	std::cout << "SIZE SHOULD BE 99650:" << size << std::endl;exit(EXIT_FAILURE);
-	while(src.peek()!=EOF){//need early termination // checking src.eof will not work in this case
-		//recover key
-		std::string key;
-		temp.str("");temp.clear();
-		src.read((char *)(&sz),szlg);
-		std::cout << "| Returned " << sz << std::endl;exit(EXIT_FAILURE);
-		char tmp[sz];src.read(tmp,sz);
-		temp << tmp;
-		temp >> key;	
-		//recover value
-		value val;
-		temp.str("");temp.clear();
-		src.read((char *)(&sz),szlg);
-		char tmp2[sz];src.read(tmp2,sz);
-		temp << tmp2;
-		temp >> val;	
-		//Add To Tree
-		this->put(key,val);
-	}
-	if(size!=(long)this->size()){
-		std::cerr << "Error loading Trie!" << size << "/"<<this->size()<<std::endl;
-		exit(EXIT_FAILURE);	
-	}
-	return src;
-}
 #endif

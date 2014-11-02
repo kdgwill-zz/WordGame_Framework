@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string.h>
-#include "LZW.hpp"
+#include "../LZW.hpp"
 #include <sstream>
 using namespace std;
 
@@ -46,14 +46,14 @@ int main(){
 	//printf("Encoded Message:  %s\n",s4.arr);
 	//printf("LZW Compression | Decompression %s\n", strcmp(s4.arr,s3)==0?"Success":"Failure");
 	//exit(EXIT_FAILURE);
-	compressLZW("dicts/dict","test/compressedTest.dat");
-	decompressLZW("test/compressedTest.dat","test/dict.dat"); 
+	LZW::compressLZW("../dicts/dict","../data/compressedDict");
+	LZW::decompressLZW("../data/compressedDict","../data/dict.dat"); 
 	std::string command;
 	command += "cmp --silent ";
-	command += "dicts/dict ";
-	command += "test/dict.dat ";
+	command += "../dicts/dict ";
+	command += "../data/dict.dat ";
 	command += " && echo \"Files Are Identical\" ";
 	command += "|| echo \"Files Are Different\"";
-	command += "&& du -h dicts/dict test/dict.dat test/compressedTest.dat\n";
+	command += "&& du -h ../dicts/dict ../data/dict.dat ../data/compressedTest.dat\n";
 	std::system(command.c_str());
 }

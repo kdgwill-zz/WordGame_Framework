@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>//setw
-#include "Trie.hpp"
+#include "../Trie.hpp"
 #include <termios.h>
 #include <vector>
 #include <queue>

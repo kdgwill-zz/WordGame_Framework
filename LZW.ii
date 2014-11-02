@@ -8,7 +8,7 @@ static const int W = 16;   // codeword width
 static const int L = 65535; // number of codewords = 2^W
 static const int WB = W/8; //number of bytes of max code width
 
-void compressLZW(std::istream & src, std::ostream & dst){
+void LZW::compressLZW(std::istream & src, std::ostream & dst){
 	std::setlocale(LC_ALL,"");
 	//setlocale(LC_ALL, "en_US.UTF8");
 	Trie<uint16_t> st(0);
@@ -27,7 +27,7 @@ void compressLZW(std::istream & src, std::ostream & dst){
 	while(!tempS.empty()) {
 
 		std::string s;
-		if(src.eof()){
+		if(src.peek()==EOF){
 			s = st.longestPrefix(tempS);
 		}else do{
 			s = st.longestPrefix(tempS);  // Find max prefix match s.
@@ -35,7 +35,7 @@ void compressLZW(std::istream & src, std::ostream & dst){
 			src.read((char *) (&tempArr), WB);
 			tempS.append(tempArr,0,src.gcount());
 			//break if mismatch
-		}while(!src.eof());//prior break handles eof
+		}while(src.peek()!=EOF);//prior break handles eof
 
 		tempInt = st.get(s);
 		dst.write((char *) (&tempInt), WB); //Print s's encoding
@@ -54,21 +54,18 @@ void compressLZW(std::istream & src, std::ostream & dst){
 	}
 }
 
-void decompressLZW(std::istream & src, std::ostream & dst){
+void LZW::decompressLZW(std::istream & src, std::ostream & dst){
 	std::setlocale(LC_ALL,"");
 	std::string st[L] = {"\0"};
-	int i; // next available codeword value
+	int i =0; // next available codeword value
 
 	// initialize symbol table with all 1-character strings
 	for (i = 0; i < R; i++)
 		st[i] = std::string(1,char(i));
 	st[i++] = "";                        // (unused) lookahead for EOF
 
-	uint16_t codeword = 0;
-	src.read((char *) (&codeword), WB);
-
+	uint16_t codeword = 0;src.read((char *) (&codeword), WB);
 	if (codeword == R) return;           // expanded message is empty string
-
 	std::string val = st[codeword];
 
 	while (true) {
@@ -82,9 +79,7 @@ void decompressLZW(std::istream & src, std::ostream & dst){
 		if (i < L) st[i++] = val + s[0];
 		val = s;
 	}
-	//val = '\0';
-	//dst.write((char *) (&val), WB);
-	//dst << '\0';
+	
 	if(src.peek()!=EOF){		
 		std::cerr << "Error Compressing File" << std::endl;
 		exit(EXIT_FAILURE);	
@@ -92,7 +87,7 @@ void decompressLZW(std::istream & src, std::ostream & dst){
 }
 
 
-void compressLZW(const char * src,const char * dst){
+void LZW::compressLZW(const char * src,const char * dst){
 	//remember reading and writing in binary can cause issues due to nonstandard compiler implementations
 	std::fstream srcp; __openFile(src,srcp,std::ios_base::in | std::ios_base::binary);
 	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
@@ -103,7 +98,7 @@ void compressLZW(const char * src,const char * dst){
 	__closeFile(dstp);
 }
 
-void decompressLZW(const char * src,const char * dst){
+void LZW::decompressLZW(const char * src,const char * dst){
 	//Open Files
 	std::fstream srcp; __openFile(src,srcp,std::ios_base::in | std::ios_base::binary);
 	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
@@ -114,9 +109,9 @@ void decompressLZW(const char * src,const char * dst){
 	__closeFile(dstp);
 }
 
-void compressLZW(std::istream & srcp,const char * dst){
+void LZW::compressLZW(std::istream & srcp,const char * dst){
 	//remember reading and writing in binary can cause issues due to nonstandard compiler implementations
-	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary);
+	std::fstream dstp; __openFile(dst,dstp,std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
 	//compression
 	compressLZW(srcp,dstp);	
 	//Clean up
@@ -124,7 +119,7 @@ void compressLZW(std::istream & srcp,const char * dst){
 
 }
 
-void decompressLZW(const char * src, std::ostream & dstp){
+void LZW::decompressLZW(const char * src, std::ostream & dstp){
 	//Open Files
 	std::fstream srcp; __openFile(src,srcp,std::ios_base::in | std::ios_base::binary);
 	//decompression
@@ -133,23 +128,21 @@ void decompressLZW(const char * src, std::ostream & dstp){
 	__closeFile(srcp);
 }
 
-template<typename value>
-void compressLZW(const Trie<value> & srct,const char * dst){
-	std::stringstream src(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
-	srct.write(src);
-	src.seekp(0);
-	std::cout << src.str() << std::endl <<std::endl;
-	compressLZW(src,dst);
-}
-
-template<typename value>
-void decompressLZW(const char * src,Trie<value>  & dstt){
-	std::stringstream dst(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
-	decompressLZW(src,dst);
-	dst.seekp(0);
-	std::cout << dst.str() << std::endl <<std::endl;
-	dstt.read(dst);
-}
+//template<typename value>
+//void LZW::compressLZW(const Trie<value> & srct,const char * dst){
+//	std::stringstream src(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+//	srct.write(src);
+//	src.seekp(0);
+//	compressLZW(src,dst);
+//}
+//
+//template<typename value>
+//void LZW::decompressLZW(const char * src,Trie<value>  & dstt){
+//	std::stringstream dst(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+//	decompressLZW(src,dst);
+//	dst.seekp(0);
+//	dstt.read(dst);
+//}
 
 //Question Number 4.8 on http://c-faq.com/ptrs/passptrinit.html
 //Remember that arguments in C are passed by value. In the code above, 
