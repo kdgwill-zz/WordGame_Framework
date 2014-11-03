@@ -62,6 +62,8 @@ class Trie{
 		TrieNode * get(TrieNode * x,const std::string & key,size_t d,const bool & ignoreCase=false)const;
 		TrieNode * put(TrieNode * x,const std::string & key,const value & val,size_t d);
 		void collect(TrieNode * x, std::string prefix, std::vector<std::string> & vec)const;
+		void collect(TrieNode * x, std::string prefix, int i, std::string pat, 
+				std::vector<std::string> & vec,const bool & ignoreCase=false)const;
 		//This is specifically for PrefixMatch and should not be used outside of method
 		TrieNode * getPrefixNode(TrieNode * x,std::string key,std::string prefix,size_t d,const bool & ignoreCase=false)const;
 		TrieNode * compress(TrieNode * x);
@@ -92,6 +94,8 @@ class Trie{
 		std::vector<std::string> keys() const;
 		//return all keys starting with a given prefix
 		std::vector<std::string> prefixMatch(std::string prefix,const bool & ignoreCase = false) const;
+		//basic wildcard match using '.' as placeholders
+		std::vector<std::string> wildCardMatch(std::string pat, const bool & ignoreCase = false) const;
 		//compress the table making it immutable returning the number of nodes removed
 		size_t compress();
 		//Write formated Trie to Output Stream

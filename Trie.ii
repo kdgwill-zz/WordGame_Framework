@@ -73,7 +73,7 @@ typename Trie<value>::TrieNode * Trie<value>::get(TrieNode * x,const std::string
 	else if	(key[d]>xkey[offset])		return get(x->right,key, d,  ignoreCase);//if key val greater than curr node
 	else if	(d<key.length()-1)		return get(x->mid,  key, d+1,ignoreCase);// need to be -2 because of \0 of string
 	else if	(offset<xkey.length()-1)  	return nullptr; //Found a node but its longer than remaining key
-								//ie looking for the but only found these<-Is likely in a compressed node
+	//ie looking for the but only found these<-Is likely in a compressed node
 	else 					return x;
 }
 
@@ -160,6 +160,35 @@ std::vector<std::string> Trie<value>::prefixMatch(std::string prefix,const bool 
 	if (x->val != defVal) vec.emplace_back(x->key);
 	collect(x->mid, x->key, vec);
 	delete x;//Can do this confidently because getPrefixNode is specific to this call
+	return vec;	
+}
+
+template<typename value>
+void Trie<value>::collect(TrieNode * x, std::string prefix, int d, 
+		std::string pat, std::vector<std::string> & vec,const bool & ignoreCase)const{
+	if(x==nullptr) return;
+
+	std::string xkey(x->key);
+	if(ignoreCase)__toLowerCase(xkey);
+
+	size_t offset = __lcp(d,pat,xkey);
+	d += offset;//need to be on last letter // but if at 0 will cause issues so make case
+	char c = pat[d];
+	char key = xkey[offset];
+
+	if(c== '.' || c < key)collect(x->left, prefix, d, pat, vec);
+	if(c== '.' || c == key){
+		if(d == (int)pat.length()-1 && x->val != defVal)vec.emplace_back(prefix + x->key);
+		if(d < (int)pat.length()-1)collect(x->mid, prefix + x->key, d+1, pat, vec);	
+	}
+	if(c== '.' || c > key)collect(x->right,prefix,d,pat,vec);	
+}
+
+template<typename value>
+std::vector<std::string> Trie<value>::wildCardMatch(std::string pat, const bool & ignoreCase) const{
+	if(ignoreCase)__toLowerCase(pat);
+	std::vector<std::string> vec;
+	collect(root, u8"", 0, pat, vec);
 	return vec;	
 }
 
@@ -289,7 +318,7 @@ std::istream & Trie<value>::read( std::istream  & src){
 		src.read((char *)(&sz),szlg);
 		char tmp[sz];src.read(tmp,sz);
 		std::string key(tmp);
-		
+
 		//recover value
 		value val;
 		temp.str("");temp.clear();
@@ -297,7 +326,7 @@ std::istream & Trie<value>::read( std::istream  & src){
 		char tmp2[sz];src.read(tmp2,sz);
 		temp << tmp2;
 		temp >> val;//this makes deserializaing generic objects leagues easier	
-		
+
 		//Add To Tree
 		this->put(key,val);
 	}

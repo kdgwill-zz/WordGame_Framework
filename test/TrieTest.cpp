@@ -21,7 +21,7 @@ int main(int argc , char * argv[]){
 
 	string str;
 	Trie<string> trie("");
-	vector<string> vec, vec_2;
+	vector<string> vec, vec_2,vec_3;
 	//LOAD Trie Table
 	std::ifstream file(argv[1]);
 	std::locale loc("");
@@ -92,6 +92,8 @@ int main(int argc , char * argv[]){
 				}else{
 					string lp = trie.longestPrefix(str,true);
 					vec_2 = trie.prefixMatch(str,true);
+					vec_3 = trie.wildCardMatch(str,true);
+					
 					if(!lp.empty()){
 						cout << "] current closest match is " << lp << endl;
 						cout << "Future Matches Include: ";					
@@ -99,6 +101,12 @@ int main(int argc , char * argv[]){
 							cout << vec_2[i] << ", ";
 						}
 						cout << endl;
+						cout << "WildCard Matches Include: ";					
+						for(int i = 0;i<(int)vec_3.size()&&i<5;i++){		
+							cout << vec_3[i] << ", ";
+						}
+						cout << endl;
+						
 						cout << '[' << str;
 					}
 					vec_2.clear();
