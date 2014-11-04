@@ -11,14 +11,16 @@ int main(int argc , char * argv[]){
 		exit(EXIT_FAILURE);
 	}
 
-	string str;
+	string word,def;
 	Trie<string> trie("");
 	//LOAD Trie Table
 	std::ifstream file(argv[1]);
 	std::locale loc("");
 	file.imbue(loc);
-	while(file >> str){
-		trie.put(str,str);
+	while(file >> word){
+		getline(file,def);
+		trie.put(word,def);
+	
 	}
 	file.close();
 
@@ -34,13 +36,14 @@ int main(int argc , char * argv[]){
 	string wild(length,'.');
 	vector<string> words = trie.wildCardMatch(wild);
 	int num = rand() % words.size();
-	string word = words[num];
+	word = words[num];
+	def = trie.get(word);
 	char c;
 	int guessLeft = length+1;
 	//preprocessing does not seem advantageous  
 
 	while(1){
-		cout << "Guess The Word\t" << wild << endl;
+		cout << "Guess The Word\t" << wild << ":" << def << endl;
 		cin >>  c;
 		if(!cin){
 			cout << "Please Input valid letter" << endl;
@@ -64,6 +67,7 @@ int main(int argc , char * argv[]){
 
 		if(wild.compare(word)==0){
 			cout << "Congratulations, you matched " << wild << endl;
+			cout << "It only took " << length + 1 - guessLeft << " guessess" << endl;
 			break;
 		}else if(guessLeft == 0){
 			cout << "Congratulations, YOU LOSE!\nThe word was " << word << endl;
