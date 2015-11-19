@@ -277,6 +277,7 @@ size_t Trie<value>::__lcp(size_t d,const std::string & s1,const std::string & s2
 ///////////////////Used a stream stream to store value and then store length of stream and 
 //////////////////then convert stream to string and store char_array 
 //////////////////This was more reliables as it can store both primatives AND objects 
+
 template<typename value>
 std::ostream & Trie<value>::write( std::ostream & dst)const{
 	std::stringstream temp;
@@ -335,5 +336,92 @@ std::istream & Trie<value>::read( std::istream  & src){
 		exit(EXIT_FAILURE);	
 	}
 	return src;
+}
+
+
+
+template<typename value>
+std::ostream & Trie<value>::write2( std::ostream & dst){
+	this->compress();
+	pwrite(root,dst);
+	return dst;
+}
+
+template<typename value>
+std::istream & Trie<value>::read2( std::istream  & src){
+	root = pread(src);
+	return src;
+}
+
+template<typename value>
+void Trie<value>::pwrite(TrieNode * node, std::ostream & dst){
+	long sz = 0;
+	std::string str;
+	std::stringstream temp;
+	size_t szlg = sizeof(long);
+
+	if(node==nullptr){
+		dst.write((char *)(&sz),szlg);
+	}else{
+		//write key
+		//do this to get size of string and proper value to store
+		temp.str("");temp.clear();
+		temp << node->key;
+		str = temp.str();
+		sz = (long)str.length()+1;//a bit of padding for correct reading
+		dst.write((char *)(&sz),szlg);
+		dst << '\0';
+		dst.write(str.c_str(),sz);
+		dst << '\0';
+		//
+		//write value	
+		temp.str("");temp.clear();
+		temp << node->val; //Does this because more reliable when serializing generic objects
+		str = temp.str();
+		sz = (long)str.length()+1;//a bit of padding for correct reading
+		dst.write((char *)(&sz),szlg);
+		dst << '\0';
+		dst.write(str.c_str(),sz);
+		dst << '\0';
+		//
+		pwrite(node->left,dst);
+		pwrite(node->mid,dst);
+		pwrite(node->right,dst);
+	}
+}
+
+
+template<typename value>
+typename Trie<value>::TrieNode * Trie<value>::pread(std::istream & src){
+	long sz = 0;
+	std::stringstream temp;
+	size_t szlg = sizeof(long);
+
+	//recover key
+	src.read((char *)(&sz),szlg);
+	if(sz==0)return nullptr;
+	src.get();
+	char tmp[sz];src.read(tmp,sz);
+	src.get();
+	std::string key(tmp);
+	//
+	//recover value
+	value val;
+	temp.str("");temp.clear();
+	src.read((char *)(&sz),szlg);
+	src.get();
+	char tmp2[sz];src.read(tmp2,sz);
+	src.get();
+	temp << tmp2;
+	temp >> val;//this makes deserializaing generic objects leagues easier	
+	//
+	TrieNode * x = new TrieNode(key,val);
+	x->left = pread(src);
+	x->mid = pread(src);
+	x->right = pread(src);
+	if(val != defVal)wordCount++;
+	nodeCount++;
+	return x;
+
 }
 

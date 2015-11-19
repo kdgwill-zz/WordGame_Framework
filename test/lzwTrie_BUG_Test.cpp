@@ -4,7 +4,7 @@
 #include <sstream>
 #include <algorithm>
 using namespace std;
-
+using namespace LZW;
 int main(int argc , char * argv[]){
 	if(argc != 2){
 		cout <<"Usage: "<<argv[0]<<" File_Of_Words"<<endl;
@@ -50,11 +50,25 @@ int main(int argc , char * argv[]){
 	   exit(EXIT_FAILURE);	
 	   */	
 	//Test trie tree serialziation
-	//cout << "Testing TreTree serialization\n";
-	//stringstream ss;ss<<trie;ss>>trie2;cout << "TrieTrees are identical " << boolalpha<<(trie==trie2)<<endl;	
+	cout << "Testing TreTree serialization\n";
+	stringstream ss;ss<<trie;
+	stringstream ss2(ss.str());
+	ss2>>trie2;
+	cout << "TrieTrees are identical " << boolalpha<<(trie==trie2)<<endl;	
+	cout << trie.details();
+	cout << trie2.details();
+	if(trie!=trie2){
+		cout << "test1 failed";
+		exit(EXIT_SUCCESS);
+	}
+	compressLZW(trie,"data/origTrie.dat");
+	cout << "compression complete" << endl;;
+	decompressLZW("data/origTrie.dat",trie3);
+	
 	//Testing lzw compression decompression
 	//cout << "\nTesting LZW Compression Decompression\n";
 	//stringstream ss1("TOBEORNOTTOBEORTOBEORNOT\0");
+	/*
 	stringstream ss1;ss1<<trie;
 	stringstream ss2;compressLZW(ss1,ss2);
 	stringstream ss3;decompressLZW(ss2,ss3);
@@ -64,16 +78,17 @@ int main(int argc , char * argv[]){
 	cout << "Compressed Size: " << ss2.str().length() << endl;
 	cout << "Uncompressed Size: " << ss3.str().length() << endl;
 	exit(EXIT_FAILURE);
+	*/
 	//Testing Serialization and compression of Trie
-	cout << "\nSerialziation and compression of Trie\n";
+	/////cout << "\nSerialziation and compression of Trie\n";
 	//cout << trie.details() << endl;
 	//cout << "Total Number of Nodes in Trie Tree Removed:            " << trie.compress() << endl << endl;
 	//cout << trie.details() << endl;
-	cout << "Begining object compression...";
-	compressLZW(trie,"test/origTrie.dat");
+	/////cout << "Begining object compression...";
+	//////compressLZW(trie,"test/origTrie.dat");
 	/*cout << "Compression Complete."<<endl;
 	  cout << "Begining object decompression...";
-	  */decompressLZW("test/origTrie.dat",trie3);
+	  */////decompressLZW("test/origTrie.dat",trie3);
 	/*cout << "Deompression Complete."<<endl;
 	  cout << "Restored Trie"<<endl;
 	  cout << trie2.details();

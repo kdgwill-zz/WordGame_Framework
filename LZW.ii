@@ -129,10 +129,10 @@ void LZW::decompressLZW(const char * src, std::ostream & dstp){
 }
 
 //template<typename value>
-//void LZW::compressLZW(const Trie<value> & srct,const char * dst){
+//void LZW::compressLZW(Trie<value> & srct,const char * dst){
 //	std::stringstream src(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
 //	srct.write(src);
-//	src.seekp(0);
+//	//src.seekp(0);
 //	compressLZW(src,dst);
 //}
 //
@@ -140,7 +140,7 @@ void LZW::decompressLZW(const char * src, std::ostream & dstp){
 //void LZW::decompressLZW(const char * src,Trie<value>  & dstt){
 //	std::stringstream dst(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
 //	decompressLZW(src,dst);
-//	dst.seekp(0);
+//	//dst.seekp(0);
 //	dstt.read(dst);
 //}
 

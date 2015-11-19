@@ -1,0 +1,21 @@
+#include "Utility.hpp"
+
+void CharUtility::quickSort(char * word,int num){
+
+}	
+
+void CharUtility::simpleQuickSort(char * word,int num){
+
+}	
+
+void CharUtility::mergeSort(char * word,int num){
+
+}
+
+void CharUtility::bestShuffle(char * word,int num){
+
+}
+
+void CharUtility::knuthShuffle(char * word,int num){
+
+}

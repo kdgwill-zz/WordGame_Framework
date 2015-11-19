@@ -35,10 +35,10 @@ namespace LZW{
 
 	//Compress Objects to File
 	//template<typename value>
-	//	void compressLZW(const Trie<value> & srct,const char * dst);
+	//void compressLZW(Trie<value> & srct,const char * dst);
 	//Deompress Objects from File
 	//template<typename value>
-	//	void decompressLZW(const char * src,Trie<value>  & dstt);
+	//void decompressLZW(const char * src,Trie<value>  & dstt);
 }
 
 #include "LZW.ii" //quick hack to add functionality wiithout linking

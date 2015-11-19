@@ -71,6 +71,8 @@ class Trie{
 		void __toLowerCase(std::string & s) const;
 		size_t __lcp(size_t d,const std::string & s1,const std::string & s2) const;
 		void cleanUp(TrieNode * X);
+		void pwrite(TrieNode * node, std::ostream & dst);
+		TrieNode * pread(std::istream & src);
 	public:
 		//Due to Language it is required that the default/Null value is set i.e int(0) or bool(false)
 		Trie(value defaultValue);
@@ -100,10 +102,12 @@ class Trie{
 		size_t compress();
 		//Write formated Trie to Output Stream
 		//For write to work a values operator<< must be overloaded correctly
-		std::ostream & write( std::ostream & dst)const;
+		std::ostream & write( std::ostream & dst)const;//can't make const compress yield superior serialization
+		std::ostream & write2( std::ostream & dst);//can't make const compress yield superior serialization
 		//Read formated Trie from Input Stream
 		//For read to work a values operator>> must be overloaded correctly
 		std::istream & read( std::istream  & src);
+		std::istream & read2( std::istream  & src);
 		//Compare Trie trees
 		bool equals(const Trie &other_trie)const;
 		//return details about the trie tree
@@ -117,9 +121,11 @@ class Trie{
 		friend bool operator== (const Trie &trie1, const Trie &trie2){return trie1.equals(trie2);}
 		//Negated Comparison Operator
 		friend bool operator!= (const Trie &trie1, const Trie &trie2){return !trie1.equals(trie2);}
+
 };
 
 //Take not this is added inside the header gaurd
 //This is the proper way to include template definition files 
 #include "Trie.ii"
+
 #endif
